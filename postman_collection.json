@@ -1,0 +1,687 @@
+{
+	"info": {
+		"_postman_id": "12345678-1234-1234-1234-123456789abc",
+		"name": "Fonds de Lecture Libre API",
+		"description": "Complete API collection voor het Fonds de Lecture Libre e-book management systeem.\n\n**Instructies:**\n1. Import deze collection in Postman\n2. Start de API op localhost:8080\n3. Run de Login request eerst om JWT token te krijgen\n4. Token wordt automatisch gebruikt in andere requests\n\n**Base URL:** http://localhost:8080",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    pm.test(\"User registered successfully\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Registreer een nieuwe gebruiker in het systeem. Standaard krijgt de gebruiker ROLE_MEMBER toegewezen."
+					},
+					"response": []
+				},
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"jwt_token\", jsonData.token);",
+									"    pm.environment.set(\"user_id\", jsonData.user.id);",
+									"    pm.test(\"Login successful\", function () {",
+									"        pm.response.to.have.status(200);",
+									"        pm.expect(jsonData.token).to.not.be.undefined;",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"Admin\",\n  \"password\": \"fondsdelecturelibre\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login met de standaard admin gebruiker. JWT token wordt automatisch opgeslagen voor gebruik in andere requests."
+					},
+					"response": []
+				},
+				{
+					"name": "Login Test User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"jwt_token\", jsonData.token);",
+									"    pm.environment.set(\"user_id\", jsonData.user.id);",
+									"    pm.test(\"Login successful\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login met een test gebruiker (moet eerst geregistreerd zijn via Register User)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Profile retrieved successfully\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/profile?username=Admin",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"profile"
+							],
+							"query": [
+								{
+									"key": "username",
+									"value": "Admin"
+								}
+							]
+						},
+						"description": "Haal gebruikersprofiel op basis van username."
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints voor registratie, login en profiel management."
+		},
+		{
+			"name": "EBooks",
+			"item": [
+				{
+					"name": "Upload EBook",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"ebook_id\", jsonData.id);",
+									"    pm.test(\"EBook uploaded successfully\", function () {",
+									"        pm.response.to.have.status(200);",
+									"        pm.expect(jsonData.id).to.not.be.undefined;",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "Selecteer een PDF of EPUB bestand (max 10MB)"
+								},
+								{
+									"key": "title",
+									"value": "Test E-Book",
+									"type": "text"
+								},
+								{
+									"key": "author",
+									"value": "Test Auteur",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "Dit is een test e-book voor demonstratie doeleinden.",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/ebooks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"ebooks"
+							]
+						},
+						"description": "Upload een nieuw e-book. Ondersteunt PDF en EPUB formaten tot 10MB."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All EBooks",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"EBooks retrieved successfully\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/ebooks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"ebooks"
+							]
+						},
+						"description": "Haal alle beschikbare e-books op."
+					},
+					"response": []
+				},
+				{
+					"name": "Get EBook by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"EBook retrieved successfully\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/ebooks/{{ebook_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"ebooks",
+								"{{ebook_id}}"
+							]
+						},
+						"description": "Haal een specifiek e-book op basis van ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Download EBook",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"EBook downloaded successfully\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/ebooks/download/{{ebook_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"ebooks",
+								"download",
+								"{{ebook_id}}"
+							]
+						},
+						"description": "Download een e-book bestand. Response is het originele bestand."
+					},
+					"response": []
+				},
+				{
+					"name": "Search EBooks",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Search completed successfully\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/ebooks/search?title=Test",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"ebooks",
+								"search"
+							],
+							"query": [
+								{
+									"key": "title",
+									"value": "Test"
+								}
+							]
+						},
+						"description": "Zoek e-books op basis van titel."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete EBook",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"EBook deleted successfully\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/ebooks/{{ebook_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"ebooks",
+								"{{ebook_id}}"
+							]
+						},
+						"description": "Verwijder een e-book. Alleen mogelijk voor de eigenaar of admin."
+					},
+					"response": []
+				}
+			],
+			"description": "EBook management endpoints voor upload, download, zoeken en verwijderen."
+		},
+		{
+			"name": "Reviews",
+			"item": [
+				{
+					"name": "Add Review",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"review_id\", jsonData.id);",
+									"    pm.test(\"Review added successfully\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ebookId\": {{ebook_id}},\n  \"userId\": {{user_id}},\n  \"rating\": 5,\n  \"comment\": \"Geweldig boek! Zeer aan te raden voor iedereen die geïnteresseerd is in dit onderwerp.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/ebooks/reviews",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"ebooks",
+								"reviews"
+							]
+						},
+						"description": "Voeg een review toe voor een e-book. Rating moet tussen 1-5 zijn."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reviews for EBook",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Reviews retrieved successfully\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/ebooks/reviews/ebook/{{ebook_id}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"ebooks",
+								"reviews",
+								"ebook",
+								"{{ebook_id}}"
+							]
+						},
+						"description": "Haal alle reviews op voor een specifiek e-book."
+					},
+					"response": []
+				}
+			],
+			"description": "Review systeem voor e-books met ratings en comments."
+		},
+		{
+			"name": "User Profile",
+			"item": [
+				{
+					"name": "Upload Profile Photo",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Profile photo uploaded successfully\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": [],
+									"description": "Selecteer een JPG of PNG bestand (max 1MB)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/userprofile/{{user_id}}/photo",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"userprofile",
+								"{{user_id}}",
+								"photo"
+							]
+						},
+						"description": "Upload een profielfoto. Ondersteunt JPG en PNG tot 1MB."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile Photo",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Profile photo retrieved successfully\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{jwt_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/userprofile/{{user_id}}/photo",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"userprofile",
+								"{{user_id}}",
+								"photo"
+							]
+						},
+						"description": "Download de profielfoto van een gebruiker."
+					},
+					"response": []
+				}
+			],
+			"description": "User profile management voor profielfoto's."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}
