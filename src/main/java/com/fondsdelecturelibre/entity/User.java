@@ -2,6 +2,7 @@ package com.fondsdelecturelibre.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import jakarta.validation.constraints.*;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -28,6 +29,8 @@ public class User {
     private Long id;
 
     @Column(unique = true, nullable = false, length = 50)
+    @NotBlank(message = "Gebruikersnaam is verplicht")
+    @Size(min = 3, max = 50, message = "Gebruikersnaam moet tussen 3 en 50 karakters zijn")
     private String username;
 
     @Column(nullable = false)
@@ -35,6 +38,8 @@ public class User {
     private String password;
 
     @Column(unique = true, nullable = false, length = 100)
+    @NotBlank(message = "Email is verplicht")
+    @Email(message = "Ongeldig email formaat")
     private String email;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -134,3 +139,4 @@ public class User {
         return getClass().hashCode();
     }
 }
+
