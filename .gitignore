@@ -47,3 +47,29 @@ Thumbs.db
 
 # Application specific
 application-local.properties
+
+# Documentation files (exclude from GitHub)
+VERANTWOORDINGSDOCUMENT.md
+TECHNISCH_ONTWERP.md
+INSTALLATIEHANDLEIDING.md
+API_DESIGN.md
+API_IMPROVEMENTS.md
+AUTH_FLOW.md
+BACKUP.md
+CHANGELOG.md
+CODE_QUALITY.md
+CONFIGURATION.md
+DATABASE.md
+DEPLOYMENT.md
+ERROR_HANDLING.md
+FILE_UPLOAD.md
+MONITORING.md
+PERFORMANCE.md
+REVIEW_SYSTEM.md
+SECURITY.md
+TESTING.md
+TEST_COVERAGE.md
+TROUBLESHOOTING.md
+USER_MANAGEMENT.md
+git-improvement-script.ps1
+postman_collection.json
