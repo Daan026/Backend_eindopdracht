@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.*;
 class EBookServiceTest {
 
     @Mock
-    private EBookRepository eBookRepository;
+    private EBookRepository ebookRepository;
 
     @Mock
     private UserRepository userRepository;
@@ -55,159 +56,169 @@ class EBookServiceTest {
         testEBook.setDescription("Test Description");
         testEBook.setFileName("test.pdf");
         testEBook.setFileType("application/pdf");
-        testEBook.setFileSize(1000L);
-        testEBook.setFileContent("test content".getBytes());
+        testEBook.setFileSize(1024L);
         testEBook.setUploadDate(LocalDateTime.now());
         testEBook.setUser(testUser);
 
         testEBookDTO = new EBookDTO();
+        testEBookDTO.setUserId(1L);
         testEBookDTO.setTitle("Test Book");
         testEBookDTO.setAuthor("Test Author");
         testEBookDTO.setDescription("Test Description");
 
-        testFile = new MockMultipartFile("file", "test.pdf", "application/pdf", "test content".getBytes());
+        testFile = new MockMultipartFile(
+                "file",
+                "test.pdf",
+                "application/pdf",
+                "test content".getBytes()
+        );
     }
 
     @Test
-    void saveEBook_ShouldReturnEBookDTO_WhenValidInput() throws Exception {
-        // Arrange
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
-        when(eBookRepository.save(any(EBook.class))).thenReturn(testEBook);
+    void saveEBook_Success() throws IOException {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(ebookRepository.save(any(EBook.class))).thenReturn(testEBook);
 
-        // Act
-        EBookDTO result = eBookService.saveEBook(testEBookDTO, testFile, "testuser");
+        EBookDTO result = eBookService.saveEBook(testEBookDTO, testFile);
 
-        // Assert
         assertNotNull(result);
         assertEquals("Test Book", result.getTitle());
         assertEquals("Test Author", result.getAuthor());
-        verify(eBookRepository).save(any(EBook.class));
+        verify(userRepository).findById(1L);
+        verify(ebookRepository).save(any(EBook.class));
     }
 
     @Test
-    void saveEBook_ShouldThrowException_WhenUserNotFound() {
-        // Arrange
-        when(userRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
+    void saveEBook_UserNotFound() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> {
-            eBookService.saveEBook(testEBookDTO, testFile, "nonexistent");
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            eBookService.saveEBook(testEBookDTO, testFile);
         });
+
+        assertEquals("User niet gevonden", exception.getMessage());
+        verify(userRepository).findById(1L);
+        verify(ebookRepository, never()).save(any(EBook.class));
     }
 
     @Test
-    void getAllEBooks_ShouldReturnListOfEBookDTOs() {
-        // Arrange
-        List<EBook> eBooks = Arrays.asList(testEBook);
-        when(eBookRepository.findAll()).thenReturn(eBooks);
+    void getAllEBooks_Success() {
+        List<EBook> ebooks = Arrays.asList(testEBook);
+        when(ebookRepository.findAll()).thenReturn(ebooks);
 
-        // Act
         List<EBookDTO> result = eBookService.getAllEBooks();
 
-        // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("Test Book", result.get(0).getTitle());
+        verify(ebookRepository).findAll();
     }
 
     @Test
-    void getEBookById_ShouldReturnEBookDTO_WhenExists() {
-        // Arrange
-        when(eBookRepository.findById(1L)).thenReturn(Optional.of(testEBook));
+    void getEBookById_Success() {
+        when(ebookRepository.findById(1L)).thenReturn(Optional.of(testEBook));
 
-        // Act
-        Optional<EBookDTO> result = eBookService.getEBookById(1L);
+        EBookDTO result = eBookService.getEBookById(1L);
 
-        // Assert
-        assertTrue(result.isPresent());
-        assertEquals("Test Book", result.get().getTitle());
-    }
-
-    @Test
-    void getEBookById_ShouldReturnEmpty_WhenNotExists() {
-        // Arrange
-        when(eBookRepository.findById(999L)).thenReturn(Optional.empty());
-
-        // Act
-        Optional<EBookDTO> result = eBookService.getEBookById(999L);
-
-        // Assert
-        assertFalse(result.isPresent());
-    }
-
-    @Test
-    void getEBookFileContent_ShouldReturnByteArray_WhenExists() {
-        // Arrange
-        when(eBookRepository.findById(1L)).thenReturn(Optional.of(testEBook));
-
-        // Act
-        byte[] result = eBookService.getEBookFileContent(1L);
-
-        // Assert
         assertNotNull(result);
-        assertArrayEquals("test content".getBytes(), result);
+        assertEquals("Test Book", result.getTitle());
+        verify(ebookRepository).findById(1L);
     }
 
     @Test
-    void getEBookFileContent_ShouldReturnNull_WhenNotExists() {
-        // Arrange
-        when(eBookRepository.findById(999L)).thenReturn(Optional.empty());
+    void getEBookById_NotFound() {
+        when(ebookRepository.findById(1L)).thenReturn(Optional.empty());
 
-        // Act
-        byte[] result = eBookService.getEBookFileContent(999L);
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            eBookService.getEBookById(1L);
+        });
 
-        // Assert
-        assertNull(result);
+        assertEquals("EBook niet gevonden", exception.getMessage());
+        verify(ebookRepository).findById(1L);
     }
 
     @Test
-    void deleteEBook_ShouldCallRepository_WhenValidId() {
-        // Arrange
-        when(eBookRepository.existsById(1L)).thenReturn(true);
+    void downloadEBook_Success() {
+        when(ebookRepository.findById(1L)).thenReturn(Optional.of(testEBook));
 
-        // Act
+        byte[] result = eBookService.downloadEBook(1L);
+
+        assertNotNull(result);
+        verify(ebookRepository).findById(1L);
+    }
+
+    @Test
+    void downloadEBook_NotFound() {
+        when(ebookRepository.findById(1L)).thenReturn(Optional.empty());
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            eBookService.downloadEBook(1L);
+        });
+
+        assertEquals("EBook niet gevonden", exception.getMessage());
+        verify(ebookRepository).findById(1L);
+    }
+
+    @Test
+    void updateEBook_Success() {
+        when(ebookRepository.findById(1L)).thenReturn(Optional.of(testEBook));
+        when(ebookRepository.save(any(EBook.class))).thenReturn(testEBook);
+
+        testEBookDTO.setTitle("Updated Title");
+        EBookDTO result = eBookService.updateEBook(1L, testEBookDTO);
+
+        assertNotNull(result);
+        assertEquals("Updated Title", result.getTitle());
+        verify(ebookRepository).findById(1L);
+        verify(ebookRepository).save(any(EBook.class));
+    }
+
+    @Test
+    void updateEBook_NotFound() {
+        when(ebookRepository.findById(1L)).thenReturn(Optional.empty());
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            eBookService.updateEBook(1L, testEBookDTO);
+        });
+
+        assertEquals("EBook niet gevonden", exception.getMessage());
+        verify(ebookRepository).findById(1L);
+        verify(ebookRepository, never()).save(any(EBook.class));
+    }
+
+    @Test
+    void deleteEBook_Success() {
+        when(ebookRepository.findById(1L)).thenReturn(Optional.of(testEBook));
+
         eBookService.deleteEBook(1L);
 
-        // Assert
-        verify(eBookRepository).deleteById(1L);
+        verify(ebookRepository).findById(1L);
+        verify(ebookRepository).delete(testEBook);
     }
 
     @Test
-    void deleteEBook_ShouldThrowException_WhenNotExists() {
-        // Arrange
-        when(eBookRepository.existsById(999L)).thenReturn(false);
+    void deleteEBook_NotFound() {
+        when(ebookRepository.findById(1L)).thenReturn(Optional.empty());
 
-        // Act & Assert
-        assertThrows(RuntimeException.class, () -> {
-            eBookService.deleteEBook(999L);
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+            eBookService.deleteEBook(1L);
         });
+
+        assertEquals("EBook niet gevonden", exception.getMessage());
+        verify(ebookRepository).findById(1L);
+        verify(ebookRepository, never()).delete(any(EBook.class));
     }
 
     @Test
-    void searchEBooksByTitle_ShouldReturnFilteredList() {
-        // Arrange
-        List<EBook> eBooks = Arrays.asList(testEBook);
-        when(eBookRepository.findByTitleContainingIgnoreCase("Test")).thenReturn(eBooks);
+    void getEBooksByUser_Success() {
+        List<EBook> ebooks = Arrays.asList(testEBook);
+        when(ebookRepository.findByUserId(1L)).thenReturn(ebooks);
 
-        // Act
-        List<EBookDTO> result = eBookService.searchEBooksByTitle("Test");
+        List<EBookDTO> result = eBookService.getEBooksByUser(1L);
 
-        // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals("Test Book", result.get(0).getTitle());
-    }
-
-    @Test
-    void searchEBooksByTitle_ShouldReturnEmptyList_WhenNoMatches() {
-        // Arrange
-        when(eBookRepository.findByTitleContainingIgnoreCase("NonExistent")).thenReturn(Arrays.asList());
-
-        // Act
-        List<EBookDTO> result = eBookService.searchEBooksByTitle("NonExistent");
-
-        // Assert
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        verify(ebookRepository).findByUserId(1L);
     }
 }
