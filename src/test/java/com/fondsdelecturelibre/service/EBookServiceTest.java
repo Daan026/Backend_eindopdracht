@@ -71,11 +71,11 @@ class EBookServiceTest {
     @Test
     void saveEBook_ShouldReturnEBookDTO_WhenValidInput() throws Exception {
         // Arrange
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(eBookRepository.save(any(EBook.class))).thenReturn(testEBook);
 
         // Act
-        EBookDTO result = eBookService.saveEBook(testEBookDTO, testFile, "testuser");
+        EBookDTO result = eBookService.saveEBook(testEBookDTO, testFile);
 
         // Assert
         assertNotNull(result);
@@ -87,11 +87,12 @@ class EBookServiceTest {
     @Test
     void saveEBook_ShouldThrowException_WhenUserNotFound() {
         // Arrange
-        when(userRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+        testEBookDTO.setUserId(999L);
 
         // Act & Assert
         assertThrows(RuntimeException.class, () -> {
-            eBookService.saveEBook(testEBookDTO, testFile, "nonexistent");
+            eBookService.saveEBook(testEBookDTO, testFile);
         });
     }
 
@@ -190,7 +191,7 @@ class EBookServiceTest {
         when(eBookRepository.findByTitleContainingIgnoreCase("Test")).thenReturn(eBooks);
 
         // Act
-        List<EBookDTO> result = eBookService.searchEBooksByTitle("Test");
+        List<EBookDTO> result = eBookService.searchByTitle("Test");
 
         // Assert
         assertNotNull(result);
@@ -204,7 +205,7 @@ class EBookServiceTest {
         when(eBookRepository.findByTitleContainingIgnoreCase("NonExistent")).thenReturn(Arrays.asList());
 
         // Act
-        List<EBookDTO> result = eBookService.searchEBooksByTitle("NonExistent");
+        List<EBookDTO> result = eBookService.searchByTitle("NonExistent");
 
         // Assert
         assertNotNull(result);

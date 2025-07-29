@@ -39,6 +39,14 @@ public class UserService implements UserDetailsService {
         return convertToDto(user);
     }
 
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
@@ -50,7 +58,7 @@ public class UserService implements UserDetailsService {
         );
     }
 
-    private UserDto convertToDto(User user) {
+    public UserDto convertToDto(User user) {
         UserDto dto = new UserDto();
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
