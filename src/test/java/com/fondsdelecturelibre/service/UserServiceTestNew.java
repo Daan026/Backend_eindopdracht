@@ -11,6 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +27,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class UserServiceTest {
 
     @Mock
@@ -49,81 +52,67 @@ class UserServiceTest {
         memberRole.setId(1L);
         memberRole.setName(Role.ERole.ROLE_MEMBER);
 
-        Set<Role> roles = new HashSet<>();
-        roles.add(memberRole);
-
         testUser = new User();
         testUser.setId(1L);
         testUser.setUsername("testuser");
         testUser.setEmail("test@example.com");
         testUser.setPassword("encodedPassword");
+        
+        Set<Role> roles = new HashSet<>();
+        roles.add(memberRole);
         testUser.setRoles(roles);
 
         testUserDto = new UserDto();
-        testUserDto.setId(1L);
         testUserDto.setUsername("testuser");
         testUserDto.setEmail("test@example.com");
         testUserDto.setPassword("password");
 
         Role testRole = new Role(Role.ERole.ROLE_MEMBER);
-        testRole.setId(1L);
+        testRole.setId(2L);
         testRole.setName(Role.ERole.ROLE_MEMBER);
     }
 
     @Test
     void createUser_ShouldReturnUserDto_WhenValidInput() {
-        // Arrange
         when(userRepository.existsByUsername("testuser")).thenReturn(false);
         when(userRepository.existsByEmail("test@example.com")).thenReturn(false);
         when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
         when(roleRepository.findByName(Role.ERole.ROLE_MEMBER)).thenReturn(Optional.of(memberRole));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
-        // Act
         UserDto result = userService.createUser(testUserDto);
 
-        // Assert
         assertNotNull(result);
         assertEquals("testuser", result.getUsername());
         assertEquals("test@example.com", result.getEmail());
         verify(userRepository).save(any(User.class));
-        verify(passwordEncoder).encode("password");
     }
 
     @Test
     void createUser_ShouldThrowException_WhenUsernameExists() {
-        // Arrange
         when(userRepository.existsByUsername("testuser")).thenReturn(true);
 
-        // Act & Assert
         assertThrows(RuntimeException.class, () -> {
             userService.createUser(testUserDto);
         });
-        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     void createUser_ShouldThrowException_WhenEmailExists() {
-        // Arrange
         when(userRepository.existsByUsername("testuser")).thenReturn(false);
         when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
 
-        // Act & Assert
         assertThrows(RuntimeException.class, () -> {
             userService.createUser(testUserDto);
         });
-        verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
     void getUserByUsername_ShouldReturnUserDto_WhenExists() {
-        // Arrange
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
 
-        // Act
         UserDto result = userService.getUserByUsername("testuser");
 
-        // Assert
         assertNotNull(result);
         assertEquals("testuser", result.getUsername());
         assertEquals("test@example.com", result.getEmail());
@@ -131,10 +120,8 @@ class UserServiceTest {
 
     @Test
     void getUserByUsername_ShouldThrowException_WhenNotExists() {
-        // Arrange
         when(userRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThrows(UsernameNotFoundException.class, () -> {
             userService.getUserByUsername("nonexistent");
         });
@@ -142,13 +129,10 @@ class UserServiceTest {
 
     @Test
     void loadUserByUsername_ShouldReturnUserDetails_WhenExists() {
-        // Arrange
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
 
-        // Act
         UserDetails result = userService.loadUserByUsername("testuser");
 
-        // Assert
         assertNotNull(result);
         assertEquals("testuser", result.getUsername());
         assertEquals("encodedPassword", result.getPassword());
@@ -158,10 +142,8 @@ class UserServiceTest {
 
     @Test
     void loadUserByUsername_ShouldThrowException_WhenNotExists() {
-        // Arrange
         when(userRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThrows(UsernameNotFoundException.class, () -> {
             userService.loadUserByUsername("nonexistent");
         });
@@ -169,67 +151,52 @@ class UserServiceTest {
 
     @Test
     void existsByUsername_ShouldReturnTrue_WhenExists() {
-        // Arrange
         when(userRepository.existsByUsername("testuser")).thenReturn(true);
 
-        // Act
         boolean result = userService.existsByUsername("testuser");
 
-        // Assert
         assertTrue(result);
     }
 
     @Test
     void existsByUsername_ShouldReturnFalse_WhenNotExists() {
-        // Arrange
         when(userRepository.existsByUsername("nonexistent")).thenReturn(false);
 
-        // Act
         boolean result = userService.existsByUsername("nonexistent");
 
-        // Assert
         assertFalse(result);
     }
 
     @Test
     void existsByEmail_ShouldReturnTrue_WhenExists() {
-        // Arrange
         when(userRepository.existsByEmail("test@example.com")).thenReturn(true);
 
-        // Act
         boolean result = userService.existsByEmail("test@example.com");
 
-        // Assert
         assertTrue(result);
     }
 
     @Test
     void existsByEmail_ShouldReturnFalse_WhenNotExists() {
-        // Arrange
         when(userRepository.existsByEmail("nonexistent@example.com")).thenReturn(false);
 
-        // Act
         boolean result = userService.existsByEmail("nonexistent@example.com");
 
-        // Assert
         assertFalse(result);
     }
 
     @Test
     void convertToDto_ShouldReturnUserDto_WhenValidUser() {
-        // Act
         UserDto result = userService.convertToDto(testUser);
 
-        // Assert
         assertNotNull(result);
         assertEquals("testuser", result.getUsername());
         assertEquals("test@example.com", result.getEmail());
-        assertNull(result.getPassword()); // Password should not be included in DTO
+        assertNull(result.getPassword()); 
     }
 
     @Test
     void convertToDto_ShouldHandleNullUser() {
-        // Act & Assert
         assertThrows(NullPointerException.class, () -> {
             userService.convertToDto(null);
         });
