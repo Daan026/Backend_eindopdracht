@@ -40,7 +40,8 @@ public class EBook {
     private LocalDateTime uploadDate;
 
     @Lob
-    @Column(name = "file_content", columnDefinition = "BYTEA")
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "file_content")
     private byte[] fileContent;
 
     @OneToMany(mappedBy = "ebook", cascade = CascadeType.ALL, orphanRemoval = true)
