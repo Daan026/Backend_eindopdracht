@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/ebooks/reviews")
+@RequestMapping("/api/ebooks")
 public class ReviewController {
 
     private final ReviewService reviewService;
@@ -16,13 +16,16 @@ public class ReviewController {
         this.reviewService = reviewService;
     }
 
-    @PostMapping
-    public ResponseEntity<ReviewDto> createReview(@RequestBody ReviewDto reviewDto) {
+    @PostMapping("/{ebookId}/reviews")
+    public ResponseEntity<ReviewDto> createReview(
+            @PathVariable Long ebookId,
+            @RequestBody ReviewDto reviewDto) {
+        reviewDto.setEbookId(ebookId);
         ReviewDto createdReview = reviewService.addReview(reviewDto);
         return ResponseEntity.ok(createdReview);
     }
 
-    @GetMapping("/ebook/{ebookId}")
+    @GetMapping("/{ebookId}/reviews")
     public ResponseEntity<List<ReviewDto>> getReviewsByEbook(@PathVariable Long ebookId) {
         return ResponseEntity.ok(reviewService.getReviewsByEbookId(ebookId));
     }

@@ -18,7 +18,7 @@ import java.util.function.Function;
 public class JwtUtil {
     @Value("${app.jwt.secret}")
     private String secretKey;
-    
+
     @Value("${app.jwt.expiration:86400000}")
     private long jwtExpiration;
 
@@ -51,24 +51,30 @@ public class JwtUtil {
         Map<String, Object> claims = new HashMap<>();
         return createToken(claims, userDetails.getUsername());
     }
-    
+
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
-                .setSigningKey(secretKey)
-                .build()
-                .parseClaimsJws(token);
+                    .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                    .build()
+                    .parseClaimsJws(token);
             return true;
         } catch (MalformedJwtException ex) {
-            log.error("Ongeldig JWT token: {}", ex.getMessage());
+            log.warn("Ongeldig JWT token: {}", ex.getMessage());
+            return false;
         } catch (ExpiredJwtException ex) {
-            log.error("JWT token is verlopen: {}", ex.getMessage());
+            log.warn("JWT token is verlopen: {}", ex.getMessage());
+            return false;
         } catch (UnsupportedJwtException ex) {
-            log.error("JWT token wordt niet ondersteund: {}", ex.getMessage());
+            log.warn("JWT token wordt niet ondersteund: {}", ex.getMessage());
+            return false;
         } catch (IllegalArgumentException ex) {
-            log.error("JWT claims string is leeg: {}", ex.getMessage());
+            log.warn("JWT claims string is leeg: {}", ex.getMessage());
+            return false;
+        } catch (Exception ex) {
+            log.error("Fout bij valideren JWT token: {}", ex.getMessage());
+            return false;
         }
-        return false;
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
@@ -82,7 +88,19 @@ public class JwtUtil {
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        try {
+
+            if (!validateToken(token)) {
+                return false;
+            }
+
+            final String username = extractUsername(token);
+            return (username != null &&
+                    username.equals(userDetails.getUsername()) &&
+                    !isTokenExpired(token));
+        } catch (Exception ex) {
+            log.error("Fout bij valideren token met gebruikersgegevens: {}", ex.getMessage());
+            return false;
+        }
     }
 }

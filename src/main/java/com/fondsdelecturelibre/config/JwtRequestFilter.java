@@ -2,8 +2,13 @@ package com.fondsdelecturelibre.config;
 
 import com.fondsdelecturelibre.service.UserService;
 import com.fondsdelecturelibre.utils.JwtUtil;
+import io.jsonwebtoken.JwtException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,32 +40,50 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(jakarta.servlet.http.HttpServletRequest request,
-                                    jakarta.servlet.http.HttpServletResponse response,
-                                    jakarta.servlet.FilterChain filterChain)
+                                  jakarta.servlet.http.HttpServletResponse response,
+                                  jakarta.servlet.FilterChain filterChain)
             throws jakarta.servlet.ServletException, IOException {
-        try {
-            String jwt = getJwtFromRequest(request);
-            
-            if (org.springframework.util.StringUtils.hasText(jwt) && jwtUtil.validateToken(jwt)) {
+        String path = request.getRequestURI();
+        
+        if (path.startsWith("/api/auth/") || path.startsWith("/v3/api-docs") || 
+            path.startsWith("/swagger-ui") || path.startsWith("/swagger-ui.html") ||
+            path.startsWith("/swagger-resources") || path.startsWith("/webjars/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        String jwt = getJwtFromRequest(request);
+        
+        if (org.springframework.util.StringUtils.hasText(jwt)) {
+            try {
                 String username = jwtUtil.extractUsername(jwt);
-                
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UserDetails userDetails = userService.loadUserByUsername(username);
-                    
-                    UsernamePasswordAuthenticationToken authentication = 
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                        
-                    authentication.setDetails(
-                        new org.springframework.security.web.authentication.WebAuthenticationDetailsSource().buildDetails(request));
-                    
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    if (jwtUtil.validateToken(jwt, userDetails)) {
+                        UsernamePasswordAuthenticationToken authentication = 
+                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                        log.debug("JWT authenticatie succesvol voor gebruiker: {}", username);
+                    } else {
+                        log.debug("JWT token validatie gefaald voor gebruiker: {}", username);
+                    }
                 }
+            } catch (Exception ex) {
+                log.warn("Fout bij JWT verwerking: {}", ex.getMessage());
+                SecurityContextHolder.clearContext();
             }
-        } catch (Exception ex) {
-            log.error("Kon gebruiker niet autoriseren met token: {}", ex.getMessage());
+        } else {
+            log.debug("Geen JWT token gevonden in Authorization header");
         }
         
         filterChain.doFilter(request, response);
+    }
+    
+    private void sendError(HttpServletResponse response, String message, HttpStatus status) throws IOException {
+        response.setStatus(status.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.getWriter().write("{\"error\":\"" + message + "\"}");
     }
     
     private String getJwtFromRequest(jakarta.servlet.http.HttpServletRequest request) {

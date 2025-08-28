@@ -2,6 +2,7 @@ package com.fondsdelecturelibre.service;
 
 import com.fondsdelecturelibre.dtos.UserDto;
 import com.fondsdelecturelibre.entity.User;
+import com.fondsdelecturelibre.exception.DuplicateResourceException;
 import com.fondsdelecturelibre.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -24,6 +25,14 @@ public class UserService implements UserDetailsService {
     }
 
     public UserDto createUser(UserDto userDto) {
+        if (existsByUsername(userDto.getUsername())) {
+            throw new DuplicateResourceException("Gebruikersnaam bestaat al: " + userDto.getUsername());
+        }
+        
+        if (existsByEmail(userDto.getEmail())) {
+            throw new DuplicateResourceException("Email adres bestaat al: " + userDto.getEmail());
+        }
+        
         User user = new User();
         user.setUsername(userDto.getUsername());
         user.setEmail(userDto.getEmail());
