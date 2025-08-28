@@ -34,11 +34,13 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> {
                 auth.requestMatchers(
                     "/api/auth/**", 
+                    "/api/test/public",
                     "/v3/api-docs/**", 
                     "/swagger-ui/**", 
                     "/swagger-ui.html",
                     "/swagger-resources/**",
-                    "/webjars/**"
+                    "/webjars/**",
+                    "/actuator/health"
                 ).permitAll();
                 
                 auth.requestMatchers(HttpMethod.GET, "/api/ebooks").hasAnyRole("MEMBER", "ADMIN");
