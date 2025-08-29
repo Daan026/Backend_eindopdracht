@@ -26,4 +26,23 @@ public interface EBookRepository extends JpaRepository<EBook, Long> {
     Long countByUserUsernameAndUploadDateAfter(@Param("username") String username, @Param("startOfYear") LocalDateTime startOfYear);
     
     List<EBook> findTop5ByUserUsernameOrderByUploadDateDesc(String username);
+    
+    // Advanced Search queries
+    List<EBook> findByAuthorContainingIgnoreCase(String author);
+    Page<EBook> findByAuthorContainingIgnoreCase(String author, Pageable pageable);
+    
+    @Query("SELECT e FROM EBook e WHERE e.category.id = :categoryId")
+    List<EBook> findByCategoryId(@Param("categoryId") Long categoryId);
+    
+    @Query("SELECT e FROM EBook e WHERE e.category.id = :categoryId")
+    Page<EBook> findByCategoryId(@Param("categoryId") Long categoryId, Pageable pageable);
+    
+    @Query("SELECT e FROM EBook e WHERE " +
+           "(:title IS NULL OR LOWER(e.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
+           "(:author IS NULL OR LOWER(e.author) LIKE LOWER(CONCAT('%', :author, '%'))) AND " +
+           "(:categoryId IS NULL OR e.category.id = :categoryId)")
+    Page<EBook> findByAdvancedSearch(@Param("title") String title, 
+                                    @Param("author") String author, 
+                                    @Param("categoryId") Long categoryId, 
+                                    Pageable pageable);
 }

@@ -266,6 +266,73 @@ public class CategoryIntegrationTest {
                 .andExpect(jsonPath("$.recentReviews").isArray());
     }
 
+    @Test
+    public void testAdvancedSearchByAuthor() throws Exception {
+        String adminToken = generateJwtToken("Admin", "ADMIN");
+        
+        // Test search by author endpoint
+        mockMvc.perform(get("/api/ebooks/search/author")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                .param("author", "test")
+                .param("page", "0")
+                .param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.pageable").exists())
+                .andExpect(jsonPath("$.size").value(5))
+                .andExpect(jsonPath("$.number").value(0));
+    }
+
+    @Test
+    public void testAdvancedSearchByCategory() throws Exception {
+        String adminToken = generateJwtToken("Admin", "ADMIN");
+        
+        // Test search by category endpoint
+        mockMvc.perform(get("/api/ebooks/search/category")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                .param("categoryId", "1")
+                .param("page", "0")
+                .param("size", "5"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.pageable").exists())
+                .andExpect(jsonPath("$.size").value(5));
+    }
+
+    @Test
+    public void testAdvancedSearchCombined() throws Exception {
+        String adminToken = generateJwtToken("Admin", "ADMIN");
+        
+        // Test advanced search with multiple parameters
+        mockMvc.perform(get("/api/ebooks/search/advanced")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                .param("title", "test")
+                .param("author", "author")
+                .param("categoryId", "1")
+                .param("page", "0")
+                .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.pageable").exists())
+                .andExpect(jsonPath("$.size").value(10));
+    }
+
+    @Test
+    public void testAdvancedSearchWithoutAuth() throws Exception {
+        // Test dat advanced search endpoints authenticatie vereisen
+        mockMvc.perform(get("/api/ebooks/search/author")
+                .param("author", "test"))
+                .andExpect(status().isForbidden());
+                
+        mockMvc.perform(get("/api/ebooks/search/category")
+                .param("categoryId", "1"))
+                .andExpect(status().isForbidden());
+                
+        mockMvc.perform(get("/api/ebooks/search/advanced")
+                .param("title", "test"))
+                .andExpect(status().isForbidden());
+    }
+
     private String generateJwtToken(String username, String... roles) {
         UserDetails userDetails = User.builder()
                 .username(username)

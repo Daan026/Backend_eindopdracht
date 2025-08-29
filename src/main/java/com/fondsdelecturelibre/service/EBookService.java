@@ -89,6 +89,37 @@ public class EBookService {
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
+    
+    public Page<EBookDTO> searchByAuthor(String author, Pageable pageable) {
+        Page<EBook> ebookPage = ebookRepository.findByAuthorContainingIgnoreCase(author, pageable);
+        return ebookPage.map(this::convertToDto);
+    }
+    
+    public List<EBookDTO> searchByAuthor(String author) {
+        return ebookRepository.findByAuthorContainingIgnoreCase(author).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+    
+    public Page<EBookDTO> searchByCategory(Long categoryId, Pageable pageable) {
+        Page<EBook> ebookPage = ebookRepository.findByCategoryId(categoryId, pageable);
+        return ebookPage.map(this::convertToDto);
+    }
+    
+    public List<EBookDTO> searchByCategory(Long categoryId) {
+        return ebookRepository.findByCategoryId(categoryId).stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+    
+    public Page<EBookDTO> advancedSearch(String title, String author, Long categoryId, Pageable pageable) {
+        // Convert empty strings to null for proper query handling
+        String titleParam = (title != null && title.trim().isEmpty()) ? null : title;
+        String authorParam = (author != null && author.trim().isEmpty()) ? null : author;
+        
+        Page<EBook> ebookPage = ebookRepository.findByAdvancedSearch(titleParam, authorParam, categoryId, pageable);
+        return ebookPage.map(this::convertToDto);
+    }
 
     public void deleteEBook(Long id) {
         EBook ebook = ebookRepository.findById(id)

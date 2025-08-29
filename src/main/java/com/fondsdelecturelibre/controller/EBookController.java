@@ -82,6 +82,32 @@ public class EBookController {
         Page<EBookDTO> ebooks = ebookService.searchByTitle(title, pageable);
         return new ResponseEntity<>(ebooks, HttpStatus.OK);
     }
+    
+    @GetMapping("/search/author")
+    public ResponseEntity<Page<EBookDTO>> searchEBooksByAuthor(
+            @RequestParam String author,
+            @PageableDefault(size = 10, sort = "title") Pageable pageable) {
+        Page<EBookDTO> ebooks = ebookService.searchByAuthor(author, pageable);
+        return new ResponseEntity<>(ebooks, HttpStatus.OK);
+    }
+    
+    @GetMapping("/search/category")
+    public ResponseEntity<Page<EBookDTO>> searchEBooksByCategory(
+            @RequestParam Long categoryId,
+            @PageableDefault(size = 10, sort = "title") Pageable pageable) {
+        Page<EBookDTO> ebooks = ebookService.searchByCategory(categoryId, pageable);
+        return new ResponseEntity<>(ebooks, HttpStatus.OK);
+    }
+    
+    @GetMapping("/search/advanced")
+    public ResponseEntity<Page<EBookDTO>> advancedSearchEBooks(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) Long categoryId,
+            @PageableDefault(size = 10, sort = "title") Pageable pageable) {
+        Page<EBookDTO> ebooks = ebookService.advancedSearch(title, author, categoryId, pageable);
+        return new ResponseEntity<>(ebooks, HttpStatus.OK);
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEBook(@PathVariable Long id) {
