@@ -54,5 +54,26 @@ SELECT 'Test', 'Guest', 'Gaststraat 5, 3000 Leuven', '+32 16 555 44 33', u.id
 FROM users u WHERE u.username = 'testguest'
 ON CONFLICT (user_id) DO NOTHING;
 
+-- Insert test categories
+INSERT INTO categories (name, description) VALUES 
+('Fictie', 'Romans en verhalen uit de verbeelding')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO categories (name, description) VALUES 
+('Non-fictie', 'Waargebeurde verhalen en informatieve boeken')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO categories (name, description) VALUES 
+('Klassiekers', 'Tijdloze literaire werken')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO categories (name, description) VALUES 
+('Romantiek', 'Liefdesverhalen en romantische romans')
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO categories (name, description) VALUES 
+('Thriller', 'Spannende en mysterieuze verhalen')
+ON CONFLICT (name) DO NOTHING;
+
 -- Note: EBooks worden automatisch geladen door EBookDataLoader
 -- Reviews kunnen toegevoegd worden na het uploaden van boeken

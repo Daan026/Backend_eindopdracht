@@ -53,6 +53,11 @@ public class EBook {
     @ToString.Exclude
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    @ToString.Exclude
+    private Category category;
+
     public EBook(String title, String author, String description, String fileName, 
                 String fileType, Long fileSize, User user) {
         setTitle(title);
