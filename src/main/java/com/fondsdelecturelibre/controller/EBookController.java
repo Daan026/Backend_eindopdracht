@@ -4,6 +4,9 @@ import com.fondsdelecturelibre.dto.EBookDTO;
 import com.fondsdelecturelibre.exception.ResourceNotFoundException;
 import com.fondsdelecturelibre.service.EBookService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -59,8 +62,9 @@ public class EBookController {
     }
 
     @GetMapping
-    public ResponseEntity<List<EBookDTO>> getAllEBooks() {
-        List<EBookDTO> ebooks = ebookService.getAllEBooks();
+    public ResponseEntity<Page<EBookDTO>> getAllEBooks(
+            @PageableDefault(size = 10, sort = "title") Pageable pageable) {
+        Page<EBookDTO> ebooks = ebookService.getAllEBooks(pageable);
         return new ResponseEntity<>(ebooks, HttpStatus.OK);
     }
 
@@ -72,8 +76,10 @@ public class EBookController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<EBookDTO>> searchEBooks(@RequestParam String title) {
-        List<EBookDTO> ebooks = ebookService.searchByTitle(title);
+    public ResponseEntity<Page<EBookDTO>> searchEBooks(
+            @RequestParam String title,
+            @PageableDefault(size = 10, sort = "title") Pageable pageable) {
+        Page<EBookDTO> ebooks = ebookService.searchByTitle(title, pageable);
         return new ResponseEntity<>(ebooks, HttpStatus.OK);
     }
 

@@ -7,6 +7,8 @@ import com.fondsdelecturelibre.exception.ResourceNotFoundException;
 import com.fondsdelecturelibre.repository.EBookRepository;
 import com.fondsdelecturelibre.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -59,6 +61,12 @@ public class EBookService {
     }
 
     @Transactional(readOnly = true)
+    public Page<EBookDTO> getAllEBooks(Pageable pageable) {
+        Page<EBook> ebookPage = ebookRepository.findAll(pageable);
+        return ebookPage.map(this::convertToDto);
+    }
+
+    @Transactional(readOnly = true)
     public List<EBookDTO> getAllEBooks() {
         return ebookRepository.findAll().stream()
                 .map(this::convertToDto)
@@ -69,6 +77,11 @@ public class EBookService {
     public Optional<EBookDTO> getEBookById(Long id) {
         return ebookRepository.findById(id)
                 .map(this::convertToDto);
+    }
+
+    public Page<EBookDTO> searchByTitle(String title, Pageable pageable) {
+        Page<EBook> ebookPage = ebookRepository.findByTitleContainingIgnoreCase(title, pageable);
+        return ebookPage.map(this::convertToDto);
     }
 
     public List<EBookDTO> searchByTitle(String title) {

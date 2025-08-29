@@ -193,6 +193,43 @@ public class CategoryIntegrationTest {
                 .andExpect(status().isNoContent());
     }
 
+    @Test
+    public void testEBookPagination() throws Exception {
+        String adminToken = generateJwtToken("Admin", "ADMIN");
+        
+        // Test pagination voor /api/ebooks endpoint
+        mockMvc.perform(get("/api/ebooks")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                .param("page", "0")
+                .param("size", "5")
+                .param("sort", "title,asc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.pageable").exists())
+                .andExpect(jsonPath("$.totalElements").exists())
+                .andExpect(jsonPath("$.totalPages").exists())
+                .andExpect(jsonPath("$.size").value(5))
+                .andExpect(jsonPath("$.number").value(0));
+    }
+
+    @Test
+    public void testEBookSearchPagination() throws Exception {
+        String adminToken = generateJwtToken("Admin", "ADMIN");
+        
+        // Test pagination voor /api/ebooks/search endpoint
+        mockMvc.perform(get("/api/ebooks/search")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken)
+                .param("title", "test")
+                .param("page", "0")
+                .param("size", "3")
+                .param("sort", "title,desc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.pageable").exists())
+                .andExpect(jsonPath("$.size").value(3))
+                .andExpect(jsonPath("$.number").value(0));
+    }
+
     private String generateJwtToken(String username, String... roles) {
         UserDetails userDetails = User.builder()
                 .username(username)

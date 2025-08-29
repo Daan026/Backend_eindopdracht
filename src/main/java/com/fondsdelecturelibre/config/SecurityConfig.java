@@ -45,9 +45,9 @@ public class SecurityConfig {
                 
                 auth.requestMatchers(HttpMethod.GET, "/api/ebooks").hasAnyRole("MEMBER", "ADMIN");
                 auth.requestMatchers(HttpMethod.GET, "/api/ebooks/**").hasAnyRole("MEMBER", "ADMIN");
-                auth.requestMatchers(HttpMethod.POST, "/api/ebooks").hasRole("ADMIN");
-                auth.requestMatchers(HttpMethod.PUT, "/api/ebooks/**").hasRole("ADMIN");
-                auth.requestMatchers(HttpMethod.DELETE, "/api/ebooks/**").hasRole("ADMIN");
+                auth.requestMatchers(HttpMethod.POST, "/api/ebooks").hasAnyRole("MEMBER", "ADMIN");
+                auth.requestMatchers(HttpMethod.PUT, "/api/ebooks/**").hasAnyRole("MEMBER", "ADMIN");
+                auth.requestMatchers(HttpMethod.DELETE, "/api/ebooks/**").hasAnyRole("MEMBER", "ADMIN");
                 
                 auth.requestMatchers("/api/ebooks/*/reviews").hasAnyRole("MEMBER", "ADMIN");
                 auth.requestMatchers("/api/ebooks/*/reviews/**").hasAnyRole("MEMBER", "ADMIN");
