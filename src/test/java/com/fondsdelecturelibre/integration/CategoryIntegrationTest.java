@@ -230,6 +230,42 @@ public class CategoryIntegrationTest {
                 .andExpect(jsonPath("$.number").value(0));
     }
 
+    @Test
+    public void testDashboardEndpointWithoutAuth() throws Exception {
+        // Test dat dashboard endpoint authenticatie vereist
+        mockMvc.perform(get("/api/dashboard"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testDashboardEndpointWithAuth() throws Exception {
+        String adminToken = generateJwtToken("Admin", "ADMIN");
+        
+        // Test dashboard endpoint met authenticatie
+        mockMvc.perform(get("/api/dashboard")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userStatistics").exists())
+                .andExpect(jsonPath("$.userStatistics.totalBooksUploaded").exists())
+                .andExpect(jsonPath("$.userStatistics.totalReviewsWritten").exists())
+                .andExpect(jsonPath("$.userStatistics.booksUploadedThisYear").exists())
+                .andExpect(jsonPath("$.recentUploads").isArray())
+                .andExpect(jsonPath("$.recentReviews").isArray());
+    }
+
+    @Test
+    public void testDashboardMemberAccess() throws Exception {
+        String memberToken = generateJwtToken("Admin", "MEMBER");
+        
+        // Test dat MEMBER ook toegang heeft tot dashboard
+        mockMvc.perform(get("/api/dashboard")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + memberToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.userStatistics").exists())
+                .andExpect(jsonPath("$.recentUploads").isArray())
+                .andExpect(jsonPath("$.recentReviews").isArray());
+    }
+
     private String generateJwtToken(String username, String... roles) {
         UserDetails userDetails = User.builder()
                 .username(username)
