@@ -45,6 +45,7 @@ public class SecurityConfig {
                 
                 auth.requestMatchers(HttpMethod.GET, "/api/ebooks").hasAnyRole("MEMBER", "ADMIN");
                 auth.requestMatchers(HttpMethod.GET, "/api/ebooks/**").hasAnyRole("MEMBER", "ADMIN");
+                auth.requestMatchers(HttpMethod.GET, "/api/ebooks/download/**").hasAnyRole("MEMBER", "ADMIN");
                 auth.requestMatchers(HttpMethod.GET, "/api/ebooks/search/**").hasAnyRole("MEMBER", "ADMIN");
                 auth.requestMatchers(HttpMethod.POST, "/api/ebooks").hasAnyRole("MEMBER", "ADMIN");
                 auth.requestMatchers(HttpMethod.PUT, "/api/ebooks/**").hasAnyRole("MEMBER", "ADMIN");
@@ -89,10 +90,12 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedOrigins(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
-        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        configuration.setAllowCredentials(false); // Changed to false for broader compatibility
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "Content-Disposition", "Content-Type", "Content-Length"));
+        configuration.setMaxAge(3600L); // Cache preflight for 1 hour
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

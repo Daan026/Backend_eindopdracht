@@ -18,6 +18,9 @@ public class Review {
     @Column(nullable = false, length = 1000)
     private String content;
 
+    @Column(nullable = false)
+    private Integer rating;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -32,8 +35,9 @@ public class Review {
     private EBook ebook;
 
     @Builder
-    public Review(String content, User user, EBook ebook) {
+    public Review(String content, Integer rating, User user, EBook ebook) {
         setContent(content);
+        setRating(rating);
         setUser(user);
         setEbook(ebook);
         this.createdAt = LocalDateTime.now();
@@ -47,6 +51,13 @@ public class Review {
             throw new IllegalArgumentException("Review mag maximaal 1000 tekens bevatten");
         }
         this.content = content.trim();
+    }
+    
+    public void setRating(Integer rating) {
+        if (rating == null || rating < 1 || rating > 5) {
+            throw new IllegalArgumentException("Rating moet tussen 1 en 5 zijn");
+        }
+        this.rating = rating;
     }
     
     public void setUser(User user) {

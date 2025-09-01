@@ -109,6 +109,14 @@ public class EBookController {
         return new ResponseEntity<>(ebooks, HttpStatus.OK);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<EBookDTO> updateEBook(
+            @PathVariable Long id,
+            @RequestBody EBookDTO ebookDTO) {
+        EBookDTO updatedEBook = ebookService.updateEBook(id, ebookDTO);
+        return new ResponseEntity<>(updatedEBook, HttpStatus.OK);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEBook(@PathVariable Long id) {
         ebookService.deleteEBook(id);

@@ -121,6 +121,19 @@ public class EBookService {
         return ebookPage.map(this::convertToDto);
     }
 
+    public EBookDTO updateEBook(Long id, EBookDTO ebookDTO) {
+        EBook existingEbook = ebookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("EBook niet gevonden met id: " + id));
+        
+        // Update alleen de velden die gewijzigd mogen worden (niet file content)
+        existingEbook.setTitle(ebookDTO.getTitle());
+        existingEbook.setAuthor(ebookDTO.getAuthor());
+        existingEbook.setDescription(ebookDTO.getDescription());
+        
+        EBook updatedEbook = ebookRepository.save(existingEbook);
+        return convertToDto(updatedEbook);
+    }
+
     public void deleteEBook(Long id) {
         EBook ebook = ebookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("EBook niet gevonden met id: " + id));

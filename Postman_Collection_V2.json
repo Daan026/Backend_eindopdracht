@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "fonds-de-lecture-libre-api",
-		"name": "Fonds de Lecture Libre API",
-		"description": "Complete API collectie voor het testen van de e-book management API",
+		"_postman_id": "fonds-de-lecture-libre-complete-api",
+		"name": "Postman Collection V2",
+		"description": "Fonds de Lecture Libre endpoints testing",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"variable": [
@@ -19,7 +19,7 @@
 	],
 	"item": [
 		{
-			"name": "Authentication",
+			"name": "🔐 Authentication",
 			"item": [
 				{
 					"name": "Register User",
@@ -36,9 +36,9 @@
 							"raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/auth/register",
+							"raw": "{{baseUrl}}/auth/register",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "auth", "register"]
+							"path": ["auth", "register"]
 						}
 					},
 					"response": []
@@ -73,9 +73,70 @@
 							"raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/auth/login",
+							"raw": "{{baseUrl}}/auth/login",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "auth", "login"]
+							"path": ["auth", "login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('token', response.token);",
+									"    console.log('Admin Token saved:', response.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"Admin\",\n  \"password\": \"fondsdelecturelibre\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/profile?username=testuser",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "profile"],
+							"query": [
+								{
+									"key": "username",
+									"value": "testuser"
+								}
+							]
 						}
 					},
 					"response": []
@@ -83,7 +144,7 @@
 			]
 		},
 		{
-			"name": "E-Books",
+			"name": "📚 E-Books",
 			"item": [
 				{
 					"name": "Get All E-Books",
@@ -96,9 +157,27 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/ebooks",
+							"raw": "{{baseUrl}}/ebooks",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "ebooks"]
+							"path": ["ebooks"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get E-Book by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ebooks/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["ebooks", "1"]
 						}
 					},
 					"response": []
@@ -139,15 +218,15 @@
 							]
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/ebooks",
+							"raw": "{{baseUrl}}/ebooks",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "ebooks"]
+							"path": ["ebooks"]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Get E-Book by ID",
+					"name": "Download E-Book (CORRECT URL)",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -157,27 +236,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/ebooks/1",
+							"raw": "{{baseUrl}}/ebooks/download/1",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "ebooks", "1"]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Download E-Book",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							}
-						],
-						"url": {
-							"raw": "{{baseUrl}}/api/ebooks/1/download",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "ebooks", "1", "download"]
+							"path": ["ebooks", "download", "1"]
 						}
 					},
 					"response": []
@@ -201,9 +262,9 @@
 							"raw": "{\n  \"title\": \"Updated Book Title\",\n  \"author\": \"Updated Author\",\n  \"description\": \"Updated description for the book.\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/ebooks/1",
+							"raw": "{{baseUrl}}/ebooks/1",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "ebooks", "1"]
+							"path": ["ebooks", "1"]
 						}
 					},
 					"response": []
@@ -219,9 +280,45 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/ebooks/1",
+							"raw": "{{baseUrl}}/ebooks/1",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "ebooks", "1"]
+							"path": ["ebooks", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Advanced Search E-Books",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ebooks/search?title=test&author=author&page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["ebooks", "search"],
+							"query": [
+								{
+									"key": "title",
+									"value": "test"
+								},
+								{
+									"key": "author",
+									"value": "author"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
 						}
 					},
 					"response": []
@@ -229,10 +326,10 @@
 			]
 		},
 		{
-			"name": "Reviews",
+			"name": "⭐ Reviews",
 			"item": [
 				{
-					"name": "Create Review",
+					"name": "Create Review (CORRECT URL)",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -247,18 +344,18 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"ebookId\": 1,\n  \"rating\": 5,\n  \"comment\": \"Excellent book! Highly recommended.\"\n}"
+							"raw": "{\n  \"rating\": 5,\n  \"comment\": \"Excellent book! Highly recommended.\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/api/ebooks/1/reviews",
+							"raw": "{{baseUrl}}/ebooks/1/reviews",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "ebooks", "1", "reviews"]
+							"path": ["ebooks", "1", "reviews"]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Get Reviews for E-Book",
+					"name": "Get Reviews for E-Book (CORRECT URL)",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -268,15 +365,20 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/reviews/ebook/1",
+							"raw": "{{baseUrl}}/ebooks/1/reviews",
 							"host": ["{{baseUrl}}"],
-							"path": ["reviews", "ebook", "1"]
+							"path": ["ebooks", "1", "reviews"]
 						}
 					},
 					"response": []
-				},
+				}
+			]
+		},
+		{
+			"name": "🏷️ Categories",
+			"item": [
 				{
-					"name": "Get All Reviews",
+					"name": "Get All Categories",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -286,15 +388,59 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/ebooks/1/reviews",
+							"raw": "{{baseUrl}}/categories",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "ebooks", "1", "reviews"]
+							"path": ["categories"]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Update Review",
+					"name": "Get Category by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/categories/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["categories", "1"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Category (ADMIN ONLY)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Science Fiction\",\n  \"description\": \"Books about futuristic concepts and technology\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/categories",
+							"host": ["{{baseUrl}}"],
+							"path": ["categories"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Category (ADMIN ONLY)",
 					"request": {
 						"method": "PUT",
 						"header": [
@@ -309,18 +455,18 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"rating\": 4,\n  \"comment\": \"Good book, but could be better.\"\n}"
+							"raw": "{\n  \"name\": \"Updated Category\",\n  \"description\": \"Updated description\"\n}"
 						},
 						"url": {
-							"raw": "{{baseUrl}}/reviews/1",
+							"raw": "{{baseUrl}}/categories/1",
 							"host": ["{{baseUrl}}"],
-							"path": ["reviews", "1"]
+							"path": ["categories", "1"]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Delete Review",
+					"name": "Delete Category (ADMIN ONLY)",
 					"request": {
 						"method": "DELETE",
 						"header": [
@@ -330,9 +476,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/reviews/1",
+							"raw": "{{baseUrl}}/categories/1",
 							"host": ["{{baseUrl}}"],
-							"path": ["reviews", "1"]
+							"path": ["categories", "1"]
 						}
 					},
 					"response": []
@@ -340,10 +486,10 @@
 			]
 		},
 		{
-			"name": "User Profile",
+			"name": "📊 Dashboard",
 			"item": [
 				{
-					"name": "Get User Profile",
+					"name": "Get User Dashboard",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -353,41 +499,20 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/auth/profile",
+							"raw": "{{baseUrl}}/dashboard",
 							"host": ["{{baseUrl}}"],
-							"path": ["api", "auth", "profile"]
+							"path": ["dashboard"]
 						}
 					},
 					"response": []
-				},
+				}
+			]
+		},
+		{
+			"name": "👤 User Profile",
+			"item": [
 				{
-					"name": "Update User Profile",
-					"request": {
-						"method": "PUT",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{token}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"address\": \"123 Main Street, City, Country\"\n}"
-						},
-						"url": {
-							"raw": "{{baseUrl}}/api/auth/profile",
-							"host": ["{{baseUrl}}"],
-							"path": ["api", "auth", "profile"]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Upload Profile Picture",
+					"name": "Upload Profile Photo (CORRECT URL)",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -407,20 +532,15 @@
 							]
 						},
 						"url": {
-							"raw": "{{baseUrl}}/users/profile/picture",
+							"raw": "{{baseUrl}}/userprofile/1/photo",
 							"host": ["{{baseUrl}}"],
-							"path": ["users", "profile", "picture"]
+							"path": ["userprofile", "1", "photo"]
 						}
 					},
 					"response": []
-				}
-			]
-		},
-		{
-			"name": "Admin Operations",
-			"item": [
+				},
 				{
-					"name": "Get All Users (Admin)",
+					"name": "Get Profile Photo",
 					"request": {
 						"method": "GET",
 						"header": [
@@ -430,17 +550,35 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/api/users",
+							"raw": "{{baseUrl}}/userprofile/1/photo",
 							"host": ["{{baseUrl}}"],
-							"path": ["admin", "users"]
+							"path": ["userprofile", "1", "photo"]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "🧪 Test Endpoints",
+			"item": [
+				{
+					"name": "Public Test Endpoint",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/test/public",
+							"host": ["{{baseUrl}}"],
+							"path": ["test", "public"]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Delete User (Admin)",
+					"name": "Member Test Endpoint",
 					"request": {
-						"method": "DELETE",
+						"method": "GET",
 						"header": [
 							{
 								"key": "Authorization",
@@ -448,35 +586,27 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/admin/users/1",
+							"raw": "{{baseUrl}}/test/member",
 							"host": ["{{baseUrl}}"],
-							"path": ["admin", "users", "1"]
+							"path": ["test", "member"]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Update User Role (Admin)",
+					"name": "Admin Test Endpoint",
 					"request": {
-						"method": "PUT",
+						"method": "GET",
 						"header": [
 							{
 								"key": "Authorization",
 								"value": "Bearer {{token}}"
-							},
-							{
-								"key": "Content-Type",
-								"value": "application/json"
 							}
 						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"userId\": 1,\n  \"roleName\": \"ROLE_ADMIN\"\n}"
-						},
 						"url": {
-							"raw": "{{baseUrl}}/admin/users/role",
+							"raw": "{{baseUrl}}/test/admin",
 							"host": ["{{baseUrl}}"],
-							"path": ["admin", "users", "role"]
+							"path": ["test", "admin"]
 						}
 					},
 					"response": []

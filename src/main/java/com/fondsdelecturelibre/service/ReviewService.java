@@ -7,6 +7,8 @@ import com.fondsdelecturelibre.entity.User;
 import com.fondsdelecturelibre.repository.EBookRepository;
 import com.fondsdelecturelibre.repository.ReviewRepository;
 import com.fondsdelecturelibre.repository.UserRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -27,13 +29,18 @@ public class ReviewService {
     }
 
     public ReviewDto addReview(ReviewDto reviewDto) {
-        User user = userRepository.findById(reviewDto.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        // Get current authenticated user from SecurityContext
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
         EBook ebook = eBookRepository.findById(reviewDto.getEbookId())
                 .orElseThrow(() -> new RuntimeException("EBook not found"));
 
         Review review = new Review();
         review.setContent(reviewDto.getComment());
+        review.setRating(reviewDto.getRating());
         review.setCreatedAt(LocalDateTime.now());
         review.setUser(user);
         review.setEbook(ebook);
@@ -51,7 +58,7 @@ public class ReviewService {
     private ReviewDto convertToDto(Review review) {
         ReviewDto dto = new ReviewDto();
         dto.setId(review.getId());
-        dto.setRating(5);
+        dto.setRating(review.getRating());
         dto.setComment(review.getContent());
         dto.setReviewDate(review.getCreatedAt());
         dto.setUserId(review.getUser() != null ? review.getUser().getId() : null);

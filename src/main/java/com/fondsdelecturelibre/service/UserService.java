@@ -1,8 +1,10 @@
 package com.fondsdelecturelibre.service;
 
 import com.fondsdelecturelibre.dtos.UserDto;
+import com.fondsdelecturelibre.entity.Role;
 import com.fondsdelecturelibre.entity.User;
 import com.fondsdelecturelibre.exception.DuplicateResourceException;
+import com.fondsdelecturelibre.repository.RoleRepository;
 import com.fondsdelecturelibre.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -11,17 +13,20 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.util.Set;
 
 @Service
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RoleRepository roleRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.roleRepository = roleRepository;
     }
 
     public UserDto createUser(UserDto userDto) {
@@ -33,10 +38,15 @@ public class UserService implements UserDetailsService {
             throw new DuplicateResourceException("Email adres bestaat al: " + userDto.getEmail());
         }
         
+        // Automatisch MEMBER rol toewijzen aan nieuwe gebruikers
+        Role memberRole = roleRepository.findByName(Role.ERole.ROLE_MEMBER)
+            .orElseGet(() -> roleRepository.save(new Role(Role.ERole.ROLE_MEMBER)));
+        
         User user = new User();
         user.setUsername(userDto.getUsername());
         user.setEmail(userDto.getEmail());
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        user.setRoles(Set.of(memberRole));
         
         User savedUser = userRepository.save(user);
         return convertToDto(savedUser);
