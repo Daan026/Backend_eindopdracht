@@ -4,9 +4,7 @@ import jakarta.persistence.*;
 
 @Entity
 public class UserProfile {
-    @Lob
-    @Basic(fetch = FetchType.LAZY)
-    @Column(name = "profile_photo", length = 1048576)
+    @Column(name = "profile_photo", columnDefinition = "BYTEA")
     private byte[] profilePhoto;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,7 +15,7 @@ public class UserProfile {
     private String address;
     private String phoneNumber;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 

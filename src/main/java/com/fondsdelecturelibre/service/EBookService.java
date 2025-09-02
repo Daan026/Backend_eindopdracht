@@ -7,6 +7,8 @@ import com.fondsdelecturelibre.exception.ResourceNotFoundException;
 import com.fondsdelecturelibre.repository.EBookRepository;
 import com.fondsdelecturelibre.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -37,10 +39,11 @@ public class EBookService {
         this.userRepository = userRepository;
     }
 
-    public EBookDTO saveEBook(EBookDTO ebookDTO, MultipartFile file) {
+    @CacheEvict(value = "ebooks", allEntries = true)
+    public EBookDTO saveEBook(EBookDTO ebookDTO, MultipartFile file, String username) {
         try {
-            User user = userRepository.findById(ebookDTO.getUserId())
-                    .orElseThrow(() -> new RuntimeException("User niet gevonden"));
+            User user = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User niet gevonden met username: " + username));
 
             EBook ebook = new EBook();
             ebook.setTitle(ebookDTO.getTitle());
@@ -66,6 +69,7 @@ public class EBookService {
         return ebookPage.map(this::convertToDto);
     }
 
+    @Cacheable("ebooks")
     @Transactional(readOnly = true)
     public List<EBookDTO> getAllEBooks() {
         return ebookRepository.findAll().stream()
@@ -73,6 +77,7 @@ public class EBookService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "ebooks", key = "#id")
     @Transactional(readOnly = true)
     public Optional<EBookDTO> getEBookById(Long id) {
         return ebookRepository.findById(id)
@@ -84,6 +89,7 @@ public class EBookService {
         return ebookPage.map(this::convertToDto);
     }
 
+    @Cacheable(value = "ebooks", key = "'search-title-' + #title")
     public List<EBookDTO> searchByTitle(String title) {
         return ebookRepository.findByTitleContainingIgnoreCase(title).stream()
                 .map(this::convertToDto)
@@ -95,6 +101,7 @@ public class EBookService {
         return ebookPage.map(this::convertToDto);
     }
     
+    @Cacheable(value = "ebooks", key = "'search-author-' + #author")
     public List<EBookDTO> searchByAuthor(String author) {
         return ebookRepository.findByAuthorContainingIgnoreCase(author).stream()
                 .map(this::convertToDto)
@@ -121,6 +128,7 @@ public class EBookService {
         return ebookPage.map(this::convertToDto);
     }
 
+    @CacheEvict(value = "ebooks", allEntries = true)
     public EBookDTO updateEBook(Long id, EBookDTO ebookDTO) {
         EBook existingEbook = ebookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("EBook niet gevonden met id: " + id));
@@ -134,6 +142,7 @@ public class EBookService {
         return convertToDto(updatedEbook);
     }
 
+    @CacheEvict(value = "ebooks", allEntries = true)
     public void deleteEBook(Long id) {
         EBook ebook = ebookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("EBook niet gevonden met id: " + id));

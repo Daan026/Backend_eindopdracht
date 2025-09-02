@@ -11,6 +11,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -49,6 +51,10 @@ public class EBookController {
             @RequestParam String author,
             @RequestParam String description) throws IOException {
         
+        // Automatisch huidige gebruiker detecteren via SecurityContext
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        
         EBookDTO ebookDTO = new EBookDTO();
         ebookDTO.setTitle(title);
         ebookDTO.setAuthor(author);
@@ -57,7 +63,7 @@ public class EBookController {
         ebookDTO.setFileSize(file.getSize());
         ebookDTO.setFileName(file.getOriginalFilename());
 
-        EBookDTO savedEBook = ebookService.saveEBook(ebookDTO, file);
+        EBookDTO savedEBook = ebookService.saveEBook(ebookDTO, file, username);
         return new ResponseEntity<>(savedEBook, HttpStatus.CREATED);
     }
 

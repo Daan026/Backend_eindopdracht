@@ -40,7 +40,7 @@ public class SecurityConfig {
                     "/swagger-ui.html",
                     "/swagger-resources/**",
                     "/webjars/**",
-                    "/actuator/health"
+                    "/actuator/**"
                 ).permitAll();
                 
                 auth.requestMatchers(HttpMethod.GET, "/api/ebooks").hasAnyRole("MEMBER", "ADMIN");
@@ -61,6 +61,14 @@ public class SecurityConfig {
                 auth.requestMatchers(HttpMethod.DELETE, "/api/categories/**").hasRole("ADMIN");
                 
                 auth.requestMatchers("/api/dashboard").hasAnyRole("MEMBER", "ADMIN");
+                
+                // Test endpoints
+                auth.requestMatchers("/api/test/member").hasAnyRole("MEMBER", "ADMIN");
+                auth.requestMatchers("/api/test/admin").hasRole("ADMIN");
+                
+                // UserProfile endpoints
+                auth.requestMatchers(HttpMethod.POST, "/api/userprofile/photo").hasAnyRole("MEMBER", "ADMIN");
+                auth.requestMatchers(HttpMethod.GET, "/api/userprofile/photo").hasAnyRole("MEMBER", "ADMIN");
                 
                 auth.requestMatchers("/api/users/**").hasRole("ADMIN");
                 

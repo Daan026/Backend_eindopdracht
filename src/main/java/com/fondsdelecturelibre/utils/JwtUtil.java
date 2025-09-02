@@ -89,8 +89,8 @@ public class JwtUtil {
 
     public Boolean validateToken(String token, UserDetails userDetails) {
         try {
-
-            if (!validateToken(token)) {
+            // First validate token signature and structure
+            if (!isValidTokenStructure(token)) {
                 return false;
             }
 
@@ -100,6 +100,19 @@ public class JwtUtil {
                     !isTokenExpired(token));
         } catch (Exception ex) {
             log.error("Fout bij valideren token met gebruikersgegevens: {}", ex.getMessage());
+            return false;
+        }
+    }
+    
+    private boolean isValidTokenStructure(String token) {
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
+        } catch (Exception ex) {
+            log.warn("Token structure validation failed: {}", ex.getMessage());
             return false;
         }
     }

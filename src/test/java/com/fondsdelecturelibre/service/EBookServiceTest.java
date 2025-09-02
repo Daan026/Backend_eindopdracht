@@ -75,10 +75,10 @@ class EBookServiceTest {
 
     @Test
     void saveEBook_ShouldReturnEBookDTO_WhenValidInput() throws Exception {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(testUser));
         when(eBookRepository.save(any(EBook.class))).thenReturn(testEBook);
 
-        EBookDTO result = eBookService.saveEBook(testEBookDTO, testFile);
+        EBookDTO result = eBookService.saveEBook(testEBookDTO, testFile, "testuser");
 
         assertNotNull(result);
         assertEquals("Test Book", result.getTitle());
@@ -88,11 +88,10 @@ class EBookServiceTest {
 
     @Test
     void saveEBook_ShouldThrowException_WhenUserNotFound() {
-        when(userRepository.findById(999L)).thenReturn(Optional.empty());
-        testEBookDTO.setUserId(999L);
+        when(userRepository.findByUsername("nonexistentuser")).thenReturn(Optional.empty());
 
         assertThrows(RuntimeException.class, () -> {
-            eBookService.saveEBook(testEBookDTO, testFile);
+            eBookService.saveEBook(testEBookDTO, testFile, "nonexistentuser");
         });
     }
 
